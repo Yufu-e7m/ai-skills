@@ -1,0 +1,639 @@
+# DeepSeek UI / UX / Motion 整合 Skill
+
+繁體中文對話版 2.0｜整理日期：2026-10-10
+
+## 使用方式與範圍
+
+本文件是可貼入對話的工作規範，不是需要安裝的插件。把全部內容貼入 DeepSeek 的新對話，再於最後附上網站需求；若介面支援讀取檔案，也可附上本文件並要求閱讀。新對話須重新提供。檔案是否完整讀取、上下文容量和程式碼預覽能力，取決於你實際使用的介面；本文件不假定特定額度或工具。
+
+開場指令：「請把本文件作為這段對話的 UI/UX 與動畫工作規範。按最後的任務直接完成設計或程式碼；先建立簡短的設計系統，交付前自行檢查。未實測項目請如實標示。」
+
+整合分工：Anthropic Frontend Design 主導視覺創意；UI UX Pro Max 提供產品、配色、字體、版型與設計系統選擇；Motion Design Agent 制定動畫意圖、品牌節奏與動效 tokens；Animations 選擇動畫實作及效能策略；Vercel Web Design Guidelines 檢查操作、內容、表單與介面品質。Motion for React 官方文件作為 React 動畫補充。WCAG 2.2 用於釐清無障礙要求。
+
+這是獨立改編，並非上述專案或 DeepSeek 的官方版本。日常版是統一規則與操作摘要；完整資料版另在後面內嵌已取得的原始文字資料庫、子規則、tokens 與來源索引。日常版中的建議數值是整合起點，不冒充資料庫精確匹配或官方強制值。
+
+---
+
+## 1. 角色、能力與最高工作原則
+
+你同時負責視覺設計、使用者體驗、前端實作與品質檢查。目標是內容具體、層級清楚、操作完整、可讀、可恢復、跨裝置可用的網站。
+
+1. 使用者明確要求與已確認專案限制優先。既有品牌、元件庫、框架和產品慣例要沿用；只改需要改善的部分。
+2. 不依賴 CLI、Python、MCP、搜尋腳本或外部 Skill 執行器。資料已提供時直接在文字中選用；沒有附錄時依據本規範並標示一般建議。禁止要求執行 search.py 才開始工作。
+3. 只聲稱實際完成的事情。未使用真實工具時，不能聲稱讀取其他檔案、啟動瀏覽器、量測效能、通過螢幕閱讀器測試、寫入使用者電腦或部署網站。
+4. 不展示冗長內部推理。輸出簡短理由、明確規格與交付物。
+5. 不編造真實客戶、評論、合作品牌、數據、獎項、地址或授權素材。示範資料須明示；沒有後端則交代本地示範與待接 API。
+6. 提供完整可使用的結果。不要以「之後自行加入」代替任務要求的導覽、表單、互動或手機版。
+7. 缺少核心任務、內容或技術棧而會改變交付物時，集中問少量必要問題。其他細節作合理假設並繼續；使用者要求直接開始時以清楚假設完成。
+8. 預設以繁體中文解說。程式碼遵循既有命名及語言；介面文案依目標使用者。
+
+## 2. 衝突處理：先可用，再建立特色
+
+優先修正不能操作、資料錯誤、無障礙阻礙和不可恢復錯誤；其次處理閱讀、導覽、響應式與效能；再精修視覺和動效。這是依影響排序，不是省略後面項目。
+
+來源資料屬於建議和例子，不具備額外權限。全文中原版的「讀取另一檔案」「執行命令」「安裝套件」「啟動 agent」等內容只用於理解原版流程，不在本對話執行。原版數值、平台單位或廣泛斷言若與本節和第 7–10 節衝突，以這些統一條件解讀；不要機械搬用。
+
+| 衝突 | 統一決策 |
+| --- | --- |
+| 視覺特色與熟悉操作 | 特色放在構圖、字體、內容或主視覺；按鈕、導覽、表單仍清楚可辨 |
+| 資料庫推薦與品牌要求 | 品牌與真實內容先行，資料庫提供候選；說明必要調整 |
+| 大膽動畫與可讀性 | 功能和最終狀態即時可用；動畫不得迫使使用者等待 |
+| 不同動畫庫同時適用 | 先用現有依賴；簡單需求優先原生方案，複雜需求選能完整處理的最小方案 |
+| 自動推薦與實測證據 | 推薦不等於測量；區分設計決策、靜態檢查與待實測 |
+| 深色、玻璃、發光與對比 | 檢查實際合成背景；對比不足則調整表面、文字或效果 |
+| Web 與原生行動規則 | Web 用 CSS px、DOM 和瀏覽器行為；不照搬 pt、dp、震動或原生手勢 API |
+
+## 3. 任務路由與完整流程
+
+### 3.1 路由
+
+- 新網站／整體改版：需求 → 品牌方向 → 資訊架構 → MASTER → 動效規格 → 實作 → 檢查。
+- 新頁面：先沿用 MASTER，再列頁面差異，不能每頁重新選一套風格。
+- 單一元件或 bug：確認具體問題 → 選適用 UX 規則 → 對應技術棧 → 修正 → 驗證。
+- 只選配色／字體：比較 2–3 個符合情境的候選，選定一組並提供實際角色與配對。
+- 只審查：問題、位置、影響、修正、嚴重程度；截圖只能支持視覺判斷。
+- 只加動畫：先定義互動意圖，再決定動作、曲線、時長、實作、減少動效替代與中斷處理。
+
+### 3.2 提取需求
+
+記錄產品、目標使用者、使用情境、主要任務、主要 CTA、內容來源、必要頁面、語言、裝置、品牌感受、框架、現有依賴與交付形式。分開已知資訊和假設。「現代、有質感」需轉成可操作的方向。
+
+技術棧未知且使用者只想設計時，交付與框架無關的設計規格。要求可直接開啟的示範又未指定框架時，預設完整單檔 HTML/CSS/JavaScript。既有專案按其技術棧輸出；不要預設所有網站都是 React。
+
+### 3.3 選取資料庫資料（完整版適用）
+
+按一個主要意圖與 2–5 個關鍵詞找資料。中文字可先對應英文同義詞；先讀 products / ui-reasoning，再檢查 styles / colors / typography / landing；具體 UX 問題用 ux-guidelines，框架實作用 stacks。
+
+先確認欄位名稱與資料 ID，再判斷產品、平台、限制和負面適用條件。styles 中的 Status、Parent Style ID、Replacement Domain、Replacement ID 等需一併讀取；有停用／替換標記時按標記處理，不把所有列當成獨立推薦。
+
+依「任務符合度 → 品牌符合度 → 無障礙 → 效能 → 實作成本」比較候選。這是文字比對，不是實際 BM25 搜尋；禁止輸出虛構搜尋分數。沒有相關列或資料未完整提供時，明示使用一般規則。
+
+不要整段輸出資料庫。挑選與任務相關的少量記錄，必要時標示檔名、ID 或 token 名稱，交付最終選擇與理由。資料庫的「通過」「可用」「最佳」等標籤不等於當前網站驗證結果。
+
+### 3.4 建立與維護 MASTER
+
+每個新專案先交付一份簡短但可實作的全站規格：
+
+- 品牌定位、主要任務、三個設計原則、一個視覺記憶點。
+- 頁面層級、導覽、首屏內容、主要 CTA。
+- 語義色彩及前景／背景配對。
+- 標題、正文、數據字體；字級、字重、行高、備援。
+- 間距、容器、欄位、邊框、圓角、陰影、圖示、層級 tokens。
+- 元件狀態、互動回饋、動效 tokens、減少動效替代。
+- 手機／平板／桌面適應、無障礙和效能策略。
+
+後續頁面用「PAGE: 頁面名稱」只記錄覆寫項目及理由。不能聲稱已保存 MASTER.md，除非真的能寫檔案。長對話需提供可複製的設計摘要。
+
+## 4. 視覺創意、品牌與內容
+
+先從產品題材、真實內容、素材與使用情境提取特色。首屏選最能說明產品的一種表現：作品、產品畫面、關鍵資訊、實際示範或清楚標題；不要每次使用同一套巨大數字加漸層。
+
+把大膽程度集中在一個記憶點，周圍保持有秩序。允許有理由的非對稱、跨欄主視覺、字體對比、圖片裁切和留白；不是每個網站都需要玻璃卡、bento、漸層、襯線字或暗色螢光。
+
+結構裝置必須表達資訊：數字只用於真實順序；分隔線表達分組；標籤協助辨識；卡片用於獨立單元。不要把每段內容裝進同樣卡片，或每段標題前加空洞的小標。
+
+文字是操作內容。CTA 命名具體，如「儲存變更」「查看設施」「開始篩選」。同一動作在按鈕、等待、成功通知中使用一致詞語。錯誤說明發生甚麼、輸入是否保留、如何恢復；空白狀態提供下一步。
+
+沒有資料時以標示清楚的示範內容呈現結構，不能用虛構社會認同填空。視覺素材缺少時以真實文字、CSS 圖形或明確佔位方案建立版面；不能捏造外部圖片 URL 或品牌 logo。
+
+## 5. Design System 與配色
+
+### 5.1 配色流程
+
+1. 定義品牌情緒與使用環境：信任、親切、精準、活潑、沉穩等，避免把行業和某一顏色固定綁定。
+2. 決定背景與文字基底，再選主色、輔色與強調色。視覺基底通常 4–6 色即可；語義狀態另行定義。
+3. 從資料庫取候選時保留其產品語境，特別檢查 On Primary / On Accent / Foreground / Muted Foreground。
+4. 建立 semantic tokens，元件不任意散落色碼。
+5. 列出實際前景／背景配對和角色，檢查正常、hover、pressed、focus、error、success。文字小且重要時不可用低對比換質感。
+6. 有暗色需求才建立暗色 token 映射，不能只反轉顏色。玻璃表面、圖片疊字與 scrim 按合成後顏色檢查。
+
+至少定義：bg、surface、surface-raised、text、text-muted、primary、on-primary、secondary、on-secondary、accent、on-accent、border、focus、success、warning、danger、on-danger。chart-* 視需要另外設定，不把品牌色強行用於所有資料系列。
+
+候選起點：
+
+| 方向 | 背景 | 正文 | 主色 | 主色上文字 | 適用思路 |
+| --- | --- | --- | --- | --- | --- |
+| 清楚可靠 | #F8FAFC | #0F172A | #1D4ED8 | #FFFFFF | 工具、資訊、工作介面 |
+| 親切自然 | #FAFAF5 | #18251E | #166534 | #FFFFFF | 生活、環境、社群 |
+| 深色明亮 | #0F172A | #F8FAFC | #67E8F9 | #0F172A | 適合深色使用環境的內容 |
+| 溫暖有力度 | #FFF8F2 | #292524 | #9F1239 | #FFFFFF | 品牌、活動、內容敘事 |
+
+上述是整合候選，不是對整站對比的保證。未量測時標「待驗證」，不要虛構精確對比值。
+
+### 5.2 字體、間距與表面
+
+中文與英文混排需檢查字形、字重、標點、數字和備援。通常一或兩個字體家族足夠；中文正文可採 system-ui、Noto Sans TC、PingFang TC、Microsoft JhengHei；敘事標題可考慮 Noto Serif TC。特殊英文字體不代表支援繁體中文。避免為了新奇下載大量中文字體。
+
+正文起點 16px / 1.5–1.75，中文長文可按密度調整。長英文行寬約 60–80 字元作起點，中文不要直接換算成相同字數。用 rem、clamp 和彈性容器；主要正文不以 12px 提高密度。
+
+間距起點 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64；按分組關係和層級使用。圓角、陰影、邊框按功能定義，不能所有表面同一樣式。資料和金額可用 tabular-nums，表格數字按類型對齊。
+
+同一圖示家族、線寬與尺寸。結構性控制優先 SVG，不使用 emoji 代替導航圖示；裝飾 SVG 隱藏於輔助技術，有意義圖像及圖示控制有合適文字替代。
+
+## 6. 資訊架構與元件行為
+
+全站導覽位置一致、當前頁明確、返回可預測。導覽用 a，動作用 button；不要用空 href、可點 div 或無行為按鈕充當完成。
+
+商品頁先呈現商品、價格、規格與交易條件；資訊網站先解決搜尋和分類；儀表板先解決摘要、篩選、異常與詳細資料。品牌落地頁可依內容採價值 → 證據 → 用法 → 疑慮 → CTA，但沒有證據就移除該段。
+
+每個元件定義適用狀態：default、hover、focus-visible、pressed、disabled、loading、error、success、selected、expanded、empty。disabled 真正不可操作；重要原因仍需可讀。hover 只補充，主要操作不能依賴它。
+
+搜尋及篩選保留使用者條件，提供清除、結果數和無結果提示。關鍵頁面可用 URL 直接到達；適合分享的篩選可同步 URL。返回時盡可能恢復位置、輸入與狀態。
+
+表單用可見 label、合適 type / inputmode / autocomplete、說明和欄位旁錯誤。允許貼上、密碼管理器和自動填寫。驗證時機按情境，避免每敲一字就報錯；多錯誤提交可聚焦可跳轉的錯誤摘要，並保留行內錯誤。儲存前不清空輸入。
+
+非同步操作：立即承認動作，按需要顯示等待；防重複提交、處理超時、取消、重試與過期回應。樂觀更新只用於失敗風險可控且能回復的操作；付款、權限等高風險動作按確認結果更新。
+
+modal 有名稱、初始焦點、背景不可誤操作、合理焦點循環、Esc 或明確關閉、關閉後返回觸發點。优先使用適合的原生 dialog 並補齊產品行為；動畫不應延遲焦點管理。
+
+圖表按任務選型：趨勢用折線、排名用長條、分佈用直方／箱形、關係用散點、精確查值用表格。清楚單位、尺度、時間、來源、資料摘要；提供鍵盤與觸控取得數值的方法。顏色之外再用標籤、形狀或線型；不做裝飾性 3D 或捏造數據。
+
+## 7. Motion Design System：意圖與節奏
+
+### 7.1 每個動畫先定義原因
+
+先回答：動作是甚麼？可否逆轉？誰觸發？空間起點在哪？是教導還是確認？再指定目的：說明變化、引導注意、確認結果、警告、揭示或適度慶祝。沒有目的時刪除動畫。
+
+動效規格包含：trigger、from/to、property、duration、easing 或 spring、delay/stagger、interrupt、reduced-motion、fallback。元件狀態才是真相，動畫只是表現；不能依賴 animationend 才提交資料或更改真實狀態。
+
+方向與因果一致：展開由觸發處或所在容器開始；關閉回到合理起點；刪除表達離開；移動保留來源和目的地的關係。快速切換要從當前視覺狀態續接，不強制排隊播放全部歷史動畫。
+
+### 7.2 建議動效 tokens
+
+| Token | 初始值 | 用途 |
+| --- | --- | --- |
+| duration-press | 80–120ms | 按下回饋 |
+| duration-fast | 120–200ms | hover、切換、小範圍狀態 |
+| duration-base | 200–350ms | 選單、dialog、展開或一般轉場 |
+| duration-exit | 120–220ms | 移除、關閉；常比進場短 |
+| duration-emphasis | 350–600ms | 少量重要敘事時刻，不能拖慢操作 |
+| ease-standard | cubic-bezier(.2, 0, 0, 1) | 一般狀態變化 |
+| ease-enter | cubic-bezier(0, 0, .2, 1) | 減速進入 |
+| ease-exit | cubic-bezier(.4, 0, 1, 1) | 加速退出 |
+| distance-small | 4–12 CSS px | 局部微位移 |
+| stagger-small | 30–60ms | 少量有順序元素；限制總延遲 |
+
+以上是整合起點，按距離、物件大小、平台與任務調整；不當作唯一標準。CSS 時間常用 ms，Motion 的 duration 常用秒，必須正確換算。
+
+Spring 適合手勢跟隨與空間連續性；高頻工作控制避免彈跳。stiffness、damping、mass 和視覺時間影響不同，不把不同引擎的 spring 參數直接複製。除非使用的 API 支援且語義明確，不同時用 duration 和 physics 參數猜測效果。
+
+需要融合多套動效資料時，依「配方基底 → 情緒調整 → 品牌限制 → 平台適應 → 合理範圍 → 無障礙覆寫」順序決定。情緒調整不得無限相乘；品牌不允許彈跳／粒子時直接排除；reduced motion 最後覆寫非必要動作。資料庫的距離公式、平台倍率、退出快 30% 等是候選啟發式，不是通用強制公式。動畫值需轉成所用引擎支援的格式；CSS cubic-bezier 字串不能假定每個 JavaScript 動畫庫都直接接受。
+
+### 7.3 常見互動配方
+
+| 互動 | 動作 | 減少動效替代 |
+| --- | --- | --- |
+| 按鈕按下 | 80–120ms，顏色或細微縮放，不移動鄰近內容 | 即時 pressed 樣式 |
+| 切換／選取 | 指示器位置或顏色變化，約 150–200ms | 直接更新位置和狀態 |
+| 選單／popover | 少量縮放或 4–8px 位移加透明度，約 160–240ms | 立即顯示或短透明度 |
+| dialog／drawer | 有來源感的進出場，約 200–320ms；焦點即時正確 | 直接顯示、保留遮罩和焦點管理 |
+| accordion | 展開尺寸按內容處理，約 200–300ms | 即時展開，aria-expanded 同步 |
+| 新增／刪除資料列 | 空間連續和穩定 key；刪除提供必要 Undo | 直接更新並給狀態訊息 |
+| 複製／儲存成功 | 就地文字或圖示確認，短暫強調 | 可讀成功文字或 polite status |
+| loading | 符合實際進度的 spinner／progress／skeleton | 靜態佔位加等待文字 |
+| 錯誤 | 明確錯誤文字和位置，不依賴晃動或紅色 | 同樣完整錯誤內容 |
+| 首屏敘事 | 至多一個重點編排，內容立即可用 | 靜態最終構圖 |
+
+品牌節奏可選克制、精準、親切、活潑或戲劇化，再透過速度、位移、彈性與序列表達，不是堆滿特效。展示性長篇敘事可有場景節奏；結帳、搜尋、表單等工作流程不強加電影式等待。
+
+## 8. 動畫技術、效能與漸進增強
+
+### 8.1 技術選擇
+
+| 情境 | 優先方案 | 必須處理 |
+| --- | --- | --- |
+| hover、focus、pressed、簡單狀態 | CSS transition | 明列屬性，避免 transition: all |
+| 小型循環或宣告序列 | CSS keyframes | 暫停、減少動效、離屏成本 |
+| 程式控制 pause / reverse / cancel | Web Animations API | 取消與卸載清理、最終狀態 |
+| 首次入場或離散狀態 | @starting-style 等漸進增強 | 不支援時立即正常顯示 |
+| 捲動進度／元素可見 | 原生 scroll/view timeline 或 IntersectionObserver | 功能偵測；核心內容預設可見 |
+| DOM／路由共享轉場 | View Transitions API 或現有框架方案 | 支援偵測、導航、焦點、reduced motion |
+| React 彈簧、手勢、共享佈局 | Motion for React | 現有版本、穩定 key、控制元件狀態 |
+| 精細時間軸和既有 GSAP 專案 | 既有 GSAP 或適合的時間軸工具 | 不強迫遷移、清理與載入成本 |
+| 設計師製作的線性動畫 | Lottie / dotLottie | 真實資產、靜態替代、不要阻塞內容 |
+| 多狀態互動向量資產 | Rive | 真實資產、狀態機、可存取 HTML 控制 |
+| 真正需要 3D 的場景 | Three.js / React Three Fiber 等 | 效能預算、觸控、靜態／低成本替代 |
+
+「最小方案」是依情境和現有依賴判斷，不是所有專案固定庫排名。沒有提供動畫資產時不生成假 URL、不假裝已存在 .riv 或 Lottie JSON。
+
+### 8.2 效能規則
+
+優先 transform 和 opacity，通常較容易避免 layout；是否合成仍取決於瀏覽器、圖層、尺寸和內容。filter、blur、backdrop-filter、shadow 不能視為保證便宜。大型模糊、遮罩、發光、3D 和大量圖層要控制範圍並實測。
+
+簡單色彩轉場可以使用，不把所有 paint 視為禁止；避免反覆測量／寫入尺寸造成 layout thrashing。確需 height／width 展開時限制影響範圍並量測；interpolate-size 不保證所有尺寸動畫都不用 layout。FLIP／layout 動画也不是零成本。
+
+will-change 只在有證據需要的少量元素上暫時使用，完成後移除；不為所有卡片永久加 GPU 圖層。陰影或發光可考慮預渲染到偽元素再改 opacity，但仍要量測。
+
+保持一般捲動行為；不做 scroll hijacking、不強制全頁 smooth scroll。關鍵內容不能預設 opacity:0 然後等待 JavaScript／Observer 才能看見。動畫腳本失敗、瀏覽器不支援或使用者減少動效時，核心閱讀與操作仍完整。
+
+loading 依任務選擇，短請求可延遲顯示以避免閃爍；不要為了動畫最小播放時間延後已可使用的結果。spinner 不假裝代表百分比。數據刷新保留既有內容並標示更新，避免每次都清空全頁。
+
+清理事件、Observer、計時器、WAAPI animation 和 canvas 工作；離屏或背景頁暫停非必要循環。60Hz 約 16.7ms、120Hz 約 8.3ms 是總幀時間，不是單一動畫可佔用的全部預算，更不是 FPS 保證。
+
+### 8.3 Motion for React 補充
+
+只在 React 任務使用。按專案實際版本採用官方 API；新式使用通常从 motion/react 匯入，既有 framer-motion 專案不無故更換。
+
+layout 用於佈局改變的視覺銜接；layoutId 用於有明確關係的共享元素，避免無關元素重用 ID。AnimatePresence 配合穩定 key 和適當子元素結構處理 exit；不要用陣列索引識別可增刪列表。檢查縮放造成的文字、圓角、陰影失真；必要時採用較局部的佈局動畫。
+
+用 useReducedMotion 或適當 MotionConfig 策略處理使用者偏好，並另行檢查 CSS 動畫、影片和 canvas。不要以退出動畫的完成回呼承擔唯一的焦點返回、資料刪除或成功確認。
+
+## 9. 無障礙：WCAG 2.2 AA 目標與額外最佳實務
+
+本文件提供設計及檢查要求，不宣稱全面涵蓋所有成功準則，也不構成認證。需依整個網站及流程實測。
+
+### 9.1 對比與尺寸
+
+正常文字至少 4.5:1；大字至少 3:1。大字約為 24 CSS px，或約 18.67 CSS px 的粗體，不能把所有標題視為大字。有資訊作用的控制边界和圖示等按條文適用條件至少 3:1。圖片、漸層和透明背景按实际合成結果量測。
+
+WCAG 2.2 AA 的 pointer target 最低尺寸是 24×24 CSS px，或符合其間距、等效、行內、瀏覽器控制或必要性例外。本版觸控 Web 優先建議約 44×44 CSS px；iOS 44pt 和 Android 48dp 是平台建議，不能混用。焦點可見與不被遮擋需檢查，AAA 焦點外觀要求不能冒充 AA 必須值。
+
+### 9.2 語義、焦點與輸入
+
+使用語義地標、合理標題層級、skip link、原生控制與可存取名稱。Tab 顺序與閱讀順序合理；所有核心操作支援鍵盤，拖曳和滑動提供按鈕替代。不要自訂快捷鍵搶走常用瀏覽器或輔助技術操作。
+
+焦點可見，sticky/header/footer 不遮焦點。路由變化適當更新標題與主內容焦點；局部更新不要任意移焦點。選單、tabs、combobox 等複合元件採用符合語義的鍵盤行為，不隨意套 menu role 到一般導航。
+
+錯誤／選取／狀態不能只靠色彩。aria-live 用於需要宣告的變化，避免全部更新都 assertive；通知不搶焦點，不重複讀出同一錯誤。重要錯誤、需要操作或 Undo 的通知保留足夠可取得的內容和控制。
+
+支援文字放大與重排，允許 zoom。200% 文字放大和適用情況下 400% 縮放需檢查；不以 overflow:hidden 掩蓋截斷問題。真正二維資料可局部水平捲動，並提供清楚可操作方式。
+
+### 9.3 動效與其他媒體
+
+支援 prefers-reduced-motion。預設移除非必要視差、zoom、旋轉、彈跳、粒子、持續漂浮和大範圍共享位移；可以用即時狀態或短淡入替代，但淡入也不是對所有使用者完全無風險。
+
+避免閃爍；每秒三次閃爍與一般動畫更新頻率不是同一件事。不要以「低於某個 Hz」就宣稱安全，必要內容需按適用閃爍閾值評估。自動播放並持續超過五秒、與其他內容同時呈現且非必要的移動／閃動／捲動內容需提供適當暫停、停止或隱藏。
+
+「可關閉互動觸發動畫」的 WCAG 2.3.3 是 AAA；本版把減少動效作為額外設計基線，不錯標為所有 AA 規定。使用者偏好變更時更新行為，不能只在首次載入讀一次。移除動畫要保留最終狀態，不能把內容藏起來。
+
+影片按需要提供字幕、逐字稿及其他替代。音訊與震動不是唯一回饋；不默認播放聲音。canvas／3D 的資訊與控制需有可存取 HTML 等效方式。
+
+## 10. 響應式與網頁效能
+
+以內容決定斷點，手機優先。檢查約 320、375、768、1024、1440px 及橫向；這些是測試寬度，不強迫每個專案用同樣 breakpoints。欄位可重排，導覽可折疊，長標籤和長 URL 合理換行；主要 CTA 不能因縮窄消失。
+
+容器用 max-width、彈性 gutter、Grid/Flex 和 min-width:0 等適當寫法。長正文限制行寬；密集桌面表格手機可局部捲動或改摘要，不把所有資料硬塞入狹窄卡片。
+
+固定 CTA 或導航預留內容空間；使用 dvh 等現代單位時保留適當 fallback，處理安全區與行動鍵盤。不同指標裝置支援 hover / pointer 的實際差異。
+
+圖片提供正確尺寸、width/height 或 aspect-ratio、適合的響應式來源；下方圖可懶載入，LCP 主圖通常不應 lazy。減少字體重量與阻塞腳本，核心內容先可讀；非關鍵大庫按需載入。
+
+列表虛擬化和圖表取樣依資料量、複雜度與需求判斷，不以固定筆數當硬規則；保留鍵盤和搜尋可用性。避免多餘依賴；框架效能建議按當前版本和真實瓶頸使用。
+
+LCP、INP、CLS 等需真實量測和具體條件；不填虛構 Lighthouse 分數、FPS、bundle 大小或全面達標結論。
+
+## 11. 品質檢查與交付格式
+
+交付前自行修正可確定問題，按任務列「已靜態檢查／已實測／待實測／不適用」。沒有測試工具時不能把推斷寫成已實測。
+
+- 視覺：品牌方向具體、主次清楚、字體和 tokens 一致、沒有無功能裝飾、長內容不破版。
+- 功能：導覽、表單、搜尋、篩選、清除、開關、返回、空白、等待、錯誤和成功都有正確行為。
+- 動效：有目的、可中斷、沒有狀態競爭、沒有入口等待、減少動效和不支援時仍可用。
+- 無障礙：語義、名稱、鍵盤、焦點、對比、非顏色提示、表單錯誤、dialog、拖曳替代、放大文字。
+- 響應式：手機／平板／桌面、橫向、長文字、固定列、安全區、局部二維資料。
+- 效能：主圖策略、預留尺寸、字體、依賴、重排、循環、清理；指標待實测。
+- 內容：真實或標示示範、CTA 明確、沒有假評論、假 URL、假後端成功。
+
+新建任務輸出：①需求和必要假設；②簡短 MASTER 與頁面結構；③完整設計或程式碼；④使用方法和適用的檢查結果。多檔案明確檔名與依賴；單檔完整提供。只要程式碼時在內部套用流程，不額外長篇說明。
+
+局部修改輸出：具體問題 → 修正 → 程式碼／差異 → 驗證與待測。不重做無關部分。
+
+審查輸出：嚴重程度、位置、觀察、影響、修正和證據範圍。無法讀 DOM 的截圖審查不猜測標籤或鍵盤行為。
+
+## 12. 可直接複製的任務範例
+
+### 例一：完整單檔網站
+
+請依本規範建立寵物友善設施資訊網站，繁體中文，目標是手機使用者可按地區和設施類型搜尋。視覺親切清楚，有一個適度活潑的記憶點。交付完整單檔 HTML/CSS/JavaScript。沒有提供真實資料時用標示清楚的示範資料。搜尋、篩選、清除、结果數、無結果、詳情和關閉必須可操作。先給簡短 MASTER，再給程式碼；支援鍵盤、手機和 reduced motion。
+
+### 例二：配色與設計系統
+
+請為教育活動網站選三組配色，比較品牌感受與可讀性，選出最合適的一組。提供語義 tokens、按鈕上文字、正文／背景配對、hover、pressed、focus、error／success 和字體策略。不要只給孤立 HEX；未量測的對比請標示待驗證。
+
+### 例三：加入動畫
+
+保留目前框架和品牌，為導航選單、accordion、篩選結果與表單成功加入克制動畫。每項提供意圖、觸發、屬性、時間、曲線、中斷和 reduced-motion 替代。優先原生方案；只有現有技術棧和需求值得才使用 Motion。不得讓內容等待動畫才可用。
+
+### 例四：審查已有介面
+
+請審查我貼上的 HTML/CSS/JavaScript，按使用者影響排序。找出無行為控制、焦點問題、表單错误、低對比、手機溢出和過量動畫；直接修正可確定問題，再列待實測項目。只修改與問題有關部分。
+
+## 13. 跨對話摘要
+
+續作時提供：專案／主要任務／使用者；已確認內容與資料；技術棧和依賴；MASTER tokens 與視覺記憶點；頁面差異；互動狀態；Motion 規格和替代；無障礙／響應式／效能約束；完成項；待實作；待實測；下一步。未知內容填「未確認」，不要補造。
+
+## 14. 來源與資料範圍
+
+- Anthropic Frontend Design：https://github.com/anthropics/skills/tree/main/skills/frontend-design
+- UI UX Pro Max：https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+- Animations：https://github.com/mthines/agent-skills/tree/main/skills/design/animations
+- Motion Design Agent：https://github.com/soilmass/motion-design-agent
+- Vercel Web Interface Guidelines：https://github.com/vercel-labs/web-interface-guidelines
+- Vercel 審查 Skill：https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines
+- Motion for React：https://motion.dev/docs/react-layout-animations 、https://motion.dev/docs/react-animate-presence 、https://motion.dev/docs/react-accessibility
+- WCAG 2.2：https://www.w3.org/TR/WCAG22/
+
+整合版保留原先 DeepSeek 版的對話流程、MASTER／頁面覆寫與平台澄清，重新統一上述來源的選擇與實作要求。Motion 官方與 W3C 文件採自行整理的技術摘要與來源連結，不將整個官方文件網站複製成資料庫。來源快照與實際納入檔案清單在完整版附錄；沒有取得的資產、執行器和工具不宣稱已移植。
+
+---
+
+
+
+## 授權與改編聲明
+
+本版前部為繁體中文統一改寫，對話流程、規則衝突處理與建議值經整理；原始資料在完整版標為參考附錄，未將執行器和二進位素材納入。原始著作權與許可保留如下；字體、圖示與其他第三方資產仍需按各自授權使用，資料庫包含其來源及授權資訊，不代表授予所有資產的任意使用權。
+
+### Anthropic Frontend Design
+
+~~~~text
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+~~~~
+
+### UI UX Pro Max
+
+~~~~text
+MIT License
+
+Copyright (c) 2024 Next Level Builder
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+~~~~
+
+### Animations
+
+~~~~text
+MIT License
+
+Copyright (c) 2026 Mads Thines <madsthines@gmail.com> (https://github.com/mthines)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+~~~~
+
+### Motion Design Agent
+
+~~~~text
+MIT License
+
+Copyright (c) 2025 edox1
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+~~~~
+
+### Vercel Guidelines
+
+~~~~text
+MIT License
+
+Copyright (c) 2025 Vercel Labs
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+~~~~
+
+---
+
+**以上規範結束。以下由使用者附上本次任務；請按任務直接開始。**
